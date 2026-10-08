@@ -1,1 +1,4 @@
+langchain_chroma==1.1.0
+langchain_core==1.6.8
+langchain_huggingface==1.2.3
 youtube_transcript_api==1.2.4
