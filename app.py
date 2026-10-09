@@ -5,6 +5,13 @@ from src.rag import index_transcript, RAG_stream, format_timestamp
 
 SESSION = {"video_id": None}
 
+BIDI_CSS = ".gradio-container .message-wrap p { unicode-bidi: plaintext; text-align: start; } .gradio-container .message p { unicode-bidi: plaintext; text-align: start; } .gradio-container table { unicode-bidi: plaintext; }"
+
+
+def isolate_bidi(text):
+    import re
+    return re.sub(r"(\[\d{2}:\d{2}(?::\d{2})?\])", r"<bdi>\1</bdi>", text)
+
 
 def index_video(url):
     if not url or not url.strip():
@@ -61,7 +68,7 @@ def build_sources_table(sources):
     rows = []
     for position, source in enumerate(sources, start=1):
         excerpt = source["excerpt"].replace("|", "/")
-        rows.append(f"| {position} | [{source['timestamp']}]({source['url']}) | {excerpt} |")
+        rows.append(f"| {position} | <bdi>[{source['timestamp']}]({source['url']})</bdi> | {excerpt} |")
     return header + "\n" + "\n".join(rows)
 
 
@@ -78,8 +85,8 @@ def chat_fn(message, history):
         yield "## Answer\n\nSearching relevant segments..."
         partial = ""
         for partial in RAG_stream(video_id, question):
-            yield f"## Answer\n\n{partial.strip()}"
-        answer = partial.strip()
+            yield f"## Answer\n\n{isolate_bidi(partial.strip())}"
+        answer = isolate_bidi(partial.strip())
         sources = get_sources(video_id, question)
         output = f"## Answer\n\n{answer}"
         if sources:
@@ -92,7 +99,7 @@ def chat_fn(message, history):
         yield "## Request failed\n\nAn unexpected error occurred."
 
 
-with gr.Blocks(title="Chat with YouTube Videos") as demo:
+with gr.Blocks(title="Chat with YouTube Videos", css=BIDI_CSS) as demo:
     gr.Markdown("## Chat with YouTube Videos\n\nIndex a video, then ask questions with timestamped sources.")
     with gr.Row():
         url_input = gr.Textbox(label="YouTube URL", placeholder="Paste a YouTube link here", scale=4)
