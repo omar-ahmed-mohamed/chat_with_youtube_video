@@ -19,7 +19,9 @@ Use ONLY the transcript excerpts below to answer.
 If the answer is not in the excerpts, say:
 "I couldn't find that in the video."
 
-After each claim, cite the timestamp like [mm:ss].
+Write the answer in short paragraphs with one blank line between paragraphs.
+Use bullet points for lists.
+Cite the timestamp after each claim like [mm:ss].
 
 Transcript excerpts:
 {context}
@@ -89,3 +91,40 @@ def RAG_pipeline(video_id, question):
     )
 
     return rag_chain.invoke(question)
+
+
+def RAG_stream(video_id, question):
+    api_key = os.getenv("GROQ_API_KEY")
+
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not set.")
+
+    llm = ChatGroq(
+        model=MODEL_NAME,
+        groq_api_key=api_key
+    )
+
+    vectorstore = load_vectorstore(video_id)
+
+    retriever = vectorstore.as_retriever(
+        search_kwargs={"k": 6}
+    )
+
+    docs = retriever.invoke(question)
+    context = format_docs(docs)
+
+    prompt = ChatPromptTemplate.from_template(
+        PROMPT_TEMPLATE
+    )
+
+    prompt_value = prompt.format(
+        context=context,
+        question=question
+    )
+
+    accumulated = ""
+
+    for chunk in llm.stream(prompt_value):
+        token = chunk.content if hasattr(chunk, "content") else str(chunk)
+        accumulated = accumulated + token
+        yield accumulated
