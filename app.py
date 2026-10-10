@@ -33,8 +33,10 @@ def index_video(url):
         )
     except ValueError as error:
         return f"## Indexing failed\n\n{error}"
-    except Exception:
-        return "## Indexing failed\n\nAn unexpected error occurred."
+    except Exception as error:
+        import traceback
+        traceback.print_exc()
+        return f"## Indexing failed\n\n{type(error).__name__}: {error}"
 
 
 def get_sources(video_id, question, k=6):
@@ -95,8 +97,10 @@ def chat_fn(message, history):
         yield output
     except ValueError as error:
         yield f"## Request failed\n\n{error}"
-    except Exception:
-        yield "## Request failed\n\nAn unexpected error occurred."
+    except Exception as error:
+        import traceback
+        traceback.print_exc()
+        yield f"## Request failed\n\n{type(error).__name__}: {error}"
 
 
 with gr.Blocks(title="Chat with YouTube Videos") as demo:
