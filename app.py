@@ -99,7 +99,7 @@ def chat_fn(message, history):
         yield "## Request failed\n\nAn unexpected error occurred."
 
 
-with gr.Blocks(title="Chat with YouTube Videos", css=BIDI_CSS) as demo:
+with gr.Blocks(title="Chat with YouTube Videos") as demo:
     gr.Markdown("## Chat with YouTube Videos\n\nIndex a video, then ask questions with timestamped sources.")
     with gr.Row():
         url_input = gr.Textbox(label="YouTube URL", placeholder="Paste a YouTube link here", scale=4)
@@ -114,4 +114,4 @@ with gr.Blocks(title="Chat with YouTube Videos", css=BIDI_CSS) as demo:
     index_button.click(fn=index_video, inputs=url_input, outputs=status_output)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(css=BIDI_CSS)
